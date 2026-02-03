@@ -40,10 +40,6 @@ KBO 초보자 해설 챗봇 (Web UI + FastAPI + Wanted LaaS Preset) 실행 가�
   $env:WANTED_LAAS_PROJECT_ID="(YOUR_PROJECT_ID)"
   $env:WANTED_LAAS_PRESET_HASH="(YOUR_PRESET_HASH)"
 
-예시(사용 중인 값):
-  $env:WANTED_LAAS_PROJECT_ID="4b5236b90c"
-  $env:WANTED_LAAS_PRESET_HASH="220498d01cfc4bf667e424a41f7fb1588d93ab8d618cb6c604183f0156d40921"
-
 (2) 값이 들어갔는지 확인
   echo $env:WANTED_LAAS_API_KEY
   echo $env:WANTED_LAAS_PROJECT_ID
