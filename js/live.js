@@ -9,17 +9,20 @@ class LiveGameManager {
     this.isConnected = false;
     this.gameState = null;
 
-    // ✅ 네트워크 흔들림 대비
+    // 네트워크 흔들림 대비
     this.failCount = 0;
-    this.failThreshold = 2; // 2번 연속 실패 시 offline
+    this.failThreshold = 2;
 
-    // ✅ baseUrl 결정
+    // API base URL
     this.baseUrl = this.getApiBaseUrl();
 
     console.log('✅ LiveGameManager baseUrl:', this.baseUrl);
     this.init();
   }
 
+  // -------------------------
+  // API Base URL 결정
+  // -------------------------
   getApiBaseUrl() {
     const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
 
@@ -37,38 +40,36 @@ class LiveGameManager {
     return base.replace(/\/$/, '');
   }
 
+  // -------------------------
+  // 초기화
+  // -------------------------
   init() {
     this.showOfflineState();
     this.startPolling();
 
-    // ✅ 항상 "처음부터" 보이게: reset -> start
+    // ✅ A안 핵심:
+    // reset 제거, start만 한 번 시도
     setTimeout(() => this.startServerReplay(), 1000);
   }
 
+  // -------------------------
+  // 서버 replay 시작 (reset 없음)
+  // -------------------------
   async startServerReplay() {
     try {
-      // 🔥 핵심: reset 후 start
-      await fetch(`${this.baseUrl}/games/${this.gameId}/replay/reset`, { method: 'POST' });
-      await fetch(`${this.baseUrl}/games/${this.gameId}/replay/start?interval=2.0`, { method: 'POST' });
-
-      console.log('▶️ 리플레이 reset 후 자동 시작 요청');
+      await fetch(
+        `${this.baseUrl}/games/${this.gameId}/replay/start?interval=2.0`,
+        { method: 'POST' }
+      );
+      console.log('▶️ 리플레이 start 요청 (reset 없음)');
     } catch (e) {
-      console.warn('리플레이 시작 실패:', e);
+      console.warn('리플레이 start 실패:', e);
     }
   }
 
-  setBaseUrl(url) {
-    const u = (url || '').trim();
-    const finalUrl = u ? u : this.getApiBaseUrl();
-    this.baseUrl = finalUrl.replace(/\/$/, '');
-    console.log('API URL 변경:', this.baseUrl);
-  }
-
-  setGameId(gameId) {
-    this.gameId = gameId;
-    console.log('게임 ID 변경:', this.gameId);
-  }
-
+  // -------------------------
+  // 상태 표시
+  // -------------------------
   showOfflineState() {
     const banner = document.getElementById('liveBanner');
     if (banner) banner.classList.add('offline');
@@ -89,7 +90,7 @@ class LiveGameManager {
     if (inningEl) inningEl.textContent = '서버 연결 대기';
 
     this.isConnected = false;
-    console.log('📴 오프라인 상태 표시');
+    console.log('📴 오프라인 상태');
   }
 
   showOnlineState() {
@@ -102,49 +103,59 @@ class LiveGameManager {
     if (liveText) liveText.textContent = 'LIVE';
 
     this.isConnected = true;
-    console.log('🔴 온라인 상태 표시');
+    console.log('🔴 온라인 상태');
   }
 
+  // -------------------------
+  // Polling
+  // -------------------------
   startPolling() {
     if (this.isPolling) return;
 
     this.isPolling = true;
-    console.log('🔄 LIVE 업데이트 시작 (연결 시도 중...)');
+    console.log('🔄 LIVE polling 시작');
 
     this.fetchGameState();
-    this.pollTimer = setInterval(() => this.fetchGameState(), this.pollInterval);
+    this.pollTimer = setInterval(
+      () => this.fetchGameState(),
+      this.pollInterval
+    );
   }
 
   stopPolling() {
     if (!this.isPolling) return;
 
     this.isPolling = false;
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
-    }
-    console.log('⏹️ LIVE 업데이트 중지');
+    clearInterval(this.pollTimer);
+    this.pollTimer = null;
+    console.log('⏹️ LIVE polling 중지');
   }
 
+  // -------------------------
+  // Game State Fetch
+  // -------------------------
   async fetchGameState() {
     try {
-      const response = await fetch(`${this.baseUrl}/games/${this.gameId}/summary`);
-      if (!response.ok) throw new Error(`API 오류: ${response.status}`);
+      const response = await fetch(
+        `${this.baseUrl}/games/${this.gameId}/summary`
+      );
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
 
       const data = await response.json();
-
-      // ✅ 성공 시 실패 카운트 초기화
       this.failCount = 0;
 
-      if (!this.isConnected) this.showOnlineState();
+      if (!this.isConnected) {
+        this.showOnlineState();
+      }
 
       this.gameState = { ...data.state, teams: data.teams };
       this.updateUI(this.gameState);
 
-    } catch (error) {
-      console.warn('게임 상태 조회 실패:', error.message);
+    } catch (err) {
+      console.warn('게임 상태 조회 실패:', err.message);
 
-      // ✅ 연속 실패일 때만 offline 전환
       this.failCount += 1;
       if (this.isConnected && this.failCount >= this.failThreshold) {
         this.showOfflineState();
@@ -152,62 +163,46 @@ class LiveGameManager {
     }
   }
 
+  // -------------------------
+  // UI 업데이트
+  // -------------------------
   updateUI(data) {
     if (data.teams) {
       const homeTeamEl = document.getElementById('homeTeam');
-      if (homeTeamEl && data.teams.home) homeTeamEl.textContent = data.teams.home;
-
       const awayTeamEl = document.getElementById('awayTeam');
+
+      if (homeTeamEl && data.teams.home) homeTeamEl.textContent = data.teams.home;
       if (awayTeamEl && data.teams.away) awayTeamEl.textContent = data.teams.away;
     }
 
     if (data.scoreboard) {
       const scoreEl = document.getElementById('gameScore');
       if (scoreEl) {
-        const homeScore = data.scoreboard.homeScore || '0';
-        const awayScore = data.scoreboard.awayScore || '0';
-        scoreEl.textContent = `${homeScore} : ${awayScore}`;
+        const h = data.scoreboard.homeScore ?? '0';
+        const a = data.scoreboard.awayScore ?? '0';
+        scoreEl.textContent = `${h} : ${a}`;
       }
     }
 
     if (data.replay) {
       const inningEl = document.getElementById('inningInfo');
       if (inningEl) {
-        const inningLabel = data.replay.inning_label || '';
-        const outs = data.count?.out || '0';
-        inningEl.textContent = `${inningLabel} ${outs}아웃`;
+        const label = data.replay.inning_label || '';
+        const outs = data.count?.out ?? '0';
+        inningEl.textContent = `${label} ${outs}아웃`;
       }
     }
   }
 
-  async getSummary() {
-    try {
-      const response = await fetch(`${this.baseUrl}/games/${this.gameId}/summary`);
-      if (!response.ok) throw new Error('요약 조회 실패');
-      const data = await response.json();
-      return data.summary || data.text || JSON.stringify(data);
-    } catch (error) {
-      console.warn('요약 조회 실패:', error.message);
-      return null;
-    }
-  }
-
-  async getRecentEvents(n = 5) {
-    try {
-      const response = await fetch(`${this.baseUrl}/games/${this.gameId}/commentary?n=${n}`);
-      if (!response.ok) throw new Error('이벤트 조회 실패');
-      return await response.json();
-    } catch (error) {
-      console.warn('이벤트 조회 실패:', error.message);
-      return null;
-    }
-  }
-
+  // -------------------------
+  // 외부 접근용 헬퍼
+  // -------------------------
   isServerConnected() {
     return this.isConnected;
   }
 }
 
+// 전역 인스턴스
 let liveGame;
 document.addEventListener('DOMContentLoaded', () => {
   liveGame = new LiveGameManager();
