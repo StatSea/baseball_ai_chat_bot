@@ -3,66 +3,60 @@
 class LiveGameManager {
   constructor() {
     this.gameId = '20250922OBSK02025';
-    this.pollInterval = 3000; // 3초마다 업데이트
+    this.pollInterval = 3000;
     this.isPolling = false;
     this.pollTimer = null;
-    this.isConnected = false; // 서버 연결 상태
-    this.gameState = null; // Store full game state
+    this.isConnected = false;
+    this.gameState = null;
 
-    // ✅ baseUrl 결정 (배포=Railway 우선, 로컬=localhost 우선)
+    // ✅ 네트워크 흔들림 대비
+    this.failCount = 0;
+    this.failThreshold = 2; // 2번 연속 실패 시 offline
+
+    // ✅ baseUrl 결정
     this.baseUrl = this.getApiBaseUrl();
 
     console.log('✅ LiveGameManager baseUrl:', this.baseUrl);
     this.init();
   }
 
-  // ✅ 배포/로컬 환경에 따라 API Base URL을 안정적으로 결정
   getApiBaseUrl() {
     const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
 
-    // 1) 배포 환경이면 Railway를 기본값으로 강제 (config가 깨져도 안전)
-    if (!isLocal) {
-      const configured =
-        (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
-          ? String(window.APP_CONFIG.API_BASE_URL).trim()
-          : '';
-
-      // config가 있으면 그걸 쓰고, 없으면 Railway 고정
-      const base = configured || 'https://baseballaichatbot-production.up.railway.app';
-      return base.replace(/\/$/, '');
-    }
-
-    // 2) 로컬 환경이면 config가 있으면 쓰고, 없으면 localhost
     const configured =
       (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
         ? String(window.APP_CONFIG.API_BASE_URL).trim()
         : '';
+
+    if (!isLocal) {
+      const base = configured || 'https://baseballaichatbot-production.up.railway.app';
+      return base.replace(/\/$/, '');
+    }
 
     const base = configured || 'http://127.0.0.1:8000';
     return base.replace(/\/$/, '');
   }
 
   init() {
-    // 초기 상태: 오프라인으로 시작
     this.showOfflineState();
-
-    // 페이지 로드 시 자동 시작
     this.startPolling();
 
-    // 서버에 리플레이 시작 요청 (자동 재생)
+    // ✅ 항상 "처음부터" 보이게: reset -> start
     setTimeout(() => this.startServerReplay(), 1000);
   }
 
   async startServerReplay() {
     try {
+      // 🔥 핵심: reset 후 start
+      await fetch(`${this.baseUrl}/games/${this.gameId}/replay/reset`, { method: 'POST' });
       await fetch(`${this.baseUrl}/games/${this.gameId}/replay/start?interval=2.0`, { method: 'POST' });
-      console.log('▶️ 리플레이 자동 시작 요청');
+
+      console.log('▶️ 리플레이 reset 후 자동 시작 요청');
     } catch (e) {
       console.warn('리플레이 시작 실패:', e);
     }
   }
 
-  // API 베이스 URL 수동 변경 (필요 시)
   setBaseUrl(url) {
     const u = (url || '').trim();
     const finalUrl = u ? u : this.getApiBaseUrl();
@@ -70,13 +64,11 @@ class LiveGameManager {
     console.log('API URL 변경:', this.baseUrl);
   }
 
-  // 게임 ID 설정
   setGameId(gameId) {
     this.gameId = gameId;
     console.log('게임 ID 변경:', this.gameId);
   }
 
-  // 오프라인 상태 표시
   showOfflineState() {
     const banner = document.getElementById('liveBanner');
     if (banner) banner.classList.add('offline');
@@ -100,7 +92,6 @@ class LiveGameManager {
     console.log('📴 오프라인 상태 표시');
   }
 
-  // 온라인 상태 표시
   showOnlineState() {
     const banner = document.getElementById('liveBanner');
     if (banner) banner.classList.remove('offline');
@@ -114,23 +105,16 @@ class LiveGameManager {
     console.log('🔴 온라인 상태 표시');
   }
 
-  // 폴링 시작
   startPolling() {
     if (this.isPolling) return;
 
     this.isPolling = true;
     console.log('🔄 LIVE 업데이트 시작 (연결 시도 중...)');
 
-    // 즉시 한 번 호출
     this.fetchGameState();
-
-    // 주기적으로 호출
-    this.pollTimer = setInterval(() => {
-      this.fetchGameState();
-    }, this.pollInterval);
+    this.pollTimer = setInterval(() => this.fetchGameState(), this.pollInterval);
   }
 
-  // 폴링 중지
   stopPolling() {
     if (!this.isPolling) return;
 
@@ -142,7 +126,6 @@ class LiveGameManager {
     console.log('⏹️ LIVE 업데이트 중지');
   }
 
-  // 게임 상태 가져오기 (팀명 포함된 summary API 사용)
   async fetchGameState() {
     try {
       const response = await fetch(`${this.baseUrl}/games/${this.gameId}/summary`);
@@ -150,23 +133,26 @@ class LiveGameManager {
 
       const data = await response.json();
 
-      // 연결 성공 - 온라인 상태로 전환
+      // ✅ 성공 시 실패 카운트 초기화
+      this.failCount = 0;
+
       if (!this.isConnected) this.showOnlineState();
 
-      // summary API 응답에서 state 객체 사용
       this.gameState = { ...data.state, teams: data.teams };
       this.updateUI(this.gameState);
 
     } catch (error) {
       console.warn('게임 상태 조회 실패:', error.message);
-      // 연결 실패 - 오프라인 상태로 전환
-      if (this.isConnected) this.showOfflineState();
+
+      // ✅ 연속 실패일 때만 offline 전환
+      this.failCount += 1;
+      if (this.isConnected && this.failCount >= this.failThreshold) {
+        this.showOfflineState();
+      }
     }
   }
 
-  // UI 업데이트
   updateUI(data) {
-    // 팀명 업데이트
     if (data.teams) {
       const homeTeamEl = document.getElementById('homeTeam');
       if (homeTeamEl && data.teams.home) homeTeamEl.textContent = data.teams.home;
@@ -175,7 +161,6 @@ class LiveGameManager {
       if (awayTeamEl && data.teams.away) awayTeamEl.textContent = data.teams.away;
     }
 
-    // 스코어 업데이트
     if (data.scoreboard) {
       const scoreEl = document.getElementById('gameScore');
       if (scoreEl) {
@@ -185,7 +170,6 @@ class LiveGameManager {
       }
     }
 
-    // 이닝 정보 업데이트
     if (data.replay) {
       const inningEl = document.getElementById('inningInfo');
       if (inningEl) {
@@ -194,11 +178,8 @@ class LiveGameManager {
         inningEl.textContent = `${inningLabel} ${outs}아웃`;
       }
     }
-
-    console.log('📊 UI 업데이트:', data);
   }
 
-  // 현재 상황 요약 가져오기 (채팅에서 사용)
   async getSummary() {
     try {
       const response = await fetch(`${this.baseUrl}/games/${this.gameId}/summary`);
@@ -211,7 +192,6 @@ class LiveGameManager {
     }
   }
 
-  // 최근 이벤트 가져오기
   async getRecentEvents(n = 5) {
     try {
       const response = await fetch(`${this.baseUrl}/games/${this.gameId}/commentary?n=${n}`);
@@ -228,7 +208,6 @@ class LiveGameManager {
   }
 }
 
-// 전역 인스턴스 생성
 let liveGame;
 document.addEventListener('DOMContentLoaded', () => {
   liveGame = new LiveGameManager();
