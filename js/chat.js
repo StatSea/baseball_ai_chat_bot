@@ -73,7 +73,7 @@ class ChatManager {
     } else if (this.step === 'ask_team') {
       this.chatInput.placeholder = "응원하는 팀을 입력해주세요 (예: 중립, 두산, SSG...)";
     } else {
-      this.chatInput.placeholder = "궁금한 점을 물어보세요... (예: 인필드 플라이가 뭐야?)";
+      this.chatInput.placeholder = "궁금한 점을 물어보세요... (예: 볼넷이 뭐야?)";
     }
   }
 
