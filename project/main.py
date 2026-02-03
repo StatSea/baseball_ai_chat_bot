@@ -37,17 +37,19 @@ app = FastAPI(title="KBO Relay Replay API", version="0.5.0")
 # CORS 설정 (프론트엔드: http://localhost:5500)
 # - 브라우저에서 FastAPI(8000) 호출 허용
 # =========================================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5500",
         "http://127.0.0.1:5500",
+        "https://baseball-ai-chat-bot-git-main-statseas-projects.vercel.app",
+        # 커스텀 도메인 있으면 여기도 추가
     ],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=False,   # 쿠키 안 쓰면 False로 두는 게 안전
+    allow_methods=["*"],       # GET/POST/OPTIONS 포함
+    allow_headers=["*"],       # Authorization, Content-Type 등 포함
 )
-
 # 파일 경로 기준(프로젝트 폴더 = main.py가 있는 폴더)
 BASE_PATH = Path(__file__).resolve().parent
 RAW_DIR = BASE_PATH / "data" / "raw"
