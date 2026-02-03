@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KBO AI 해설위원 | 야구 입문자를 위한 친절한 해설</title>
+    <meta name="description" content="야구 규칙이 어려우신가요? AI 해설위원이 경기 상황을 쉽고 재미있게 설명해드립니다. 응원가 검색도 한 번에!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">⚾</span>
+                    <h1>AI 해설위원</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Live Game Banner -->
+        <div class="live-banner" id="liveBanner">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>LIVE</span>
+            </div>
+            <div class="game-info">
+                <span class="team home" id="homeTeam">두산</span>
+                <span class="score" id="gameScore">3 : 2</span>
+                <span class="team away" id="awayTeam">삼성</span>
+            </div>
+            <div class="inning" id="inningInfo">5회 말 2아웃</div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="chat">
+                <span class="tab-icon">💬</span>
+                <span>AI 해설</span>
+            </button>
+            <button class="tab-btn" data-tab="cheering">
+                <span class="tab-icon">📣</span>
+                <span>응원가</span>
+            </button>
+        </nav>
+
+        <!-- Chat Tab Content -->
+        <main class="tab-content active" id="chatTab">
+            <div class="chat-container">
+                <div class="messages" id="messages">
+
+                </div>
+
+                <!-- Quick Questions -->
+                <div class="quick-questions" id="quickQuestions" style="display:none;">
+                    <button class="quick-btn" data-question="1루가 뭐야?">1루?</button>
+                    <button class="quick-btn" data-question="병살이 뭐야? 왜 선언됐어?">병살이란?</button>
+                    <button class="quick-btn" data-question="지금 무슨 상황이야?">지금 상황</button>
+                    <button class="quick-btn" data-question="파울이랑 페어가 뭐야?">파울,페어</button>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="말투를 골라주세요 (친구/해설위원/초보자/응원단)">
+                    <button class="send-btn" id="sendBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Cheering Tab Content -->
+        <main class="tab-content" id="cheeringTab">
+            <div class="cheering-container">
+                <!-- Team Selector -->
+                <div class="team-selector">
+                    <button class="team-btn" data-team="doosan">
+                        <span class="team-logo">🐻</span>
+                        <span>두산</span>
+                    </button>
+                    <button class="team-btn" data-team="samsung">
+                        <span class="team-logo">🦁</span>
+                        <span>삼성</span>
+                    </button>
+                    <button class="team-btn" data-team="lg">
+                        <span class="team-logo">🔥</span>
+                        <span>LG</span>
+                    </button>
+                    <button class="team-btn" data-team="kiwoom">
+                        <span class="team-logo">🦸🏻</span>
+                        <span>키움</span>
+                    </button>
+                    <button class="team-btn" data-team="kt">
+                        <span class="team-logo">🧙</span>
+                        <span>KT</span>
+                    </button>
+                    <button class="team-btn" data-team="kia">
+                        <span class="team-logo">🐯</span>
+                        <span>KIA</span>
+                    </button>
+                    <button class="team-btn" data-team="hanwha">
+                        <span class="team-logo">🦅</span>
+                        <span>한화</span>
+                    </button>
+                    <button class="team-btn" data-team="nc">
+                        <span class="team-logo">🦕</span>
+                        <span>NC</span>
+                    </button>
+                    <button class="team-btn" data-team="lotte">
+                        <span class="team-logo">🛳️</span>
+                        <span>롯데</span>
+                    </button>
+                    <button class="team-btn" data-team="ssg">
+                        <span class="team-logo">🛸</span>
+                        <span>SSG</span>
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div class="player-search">
+                    <input type="text" class="search-input" id="playerSearch" placeholder="선수 이름 또는 등번호 검색...">
+                </div>
+
+                <!-- Chant Type Toggle -->
+                <div class="chant-toggle">
+                    <button class="chant-toggle-btn active" data-type="player">
+                        <span>⚾</span> 선수 응원가
+                    </button>
+                    <button class="chant-toggle-btn" data-type="team">
+                        <span>🎵</span> 팀 응원가
+                    </button>
+                </div>
+
+                <!-- Player List -->
+                <div class="player-list" id="playerList">
+                    <div class="player-card" data-player="jungsoobin">
+                        <div class="player-number">31</div>
+                        <div class="player-info">
+                            <h3>정수빈</h3>
+                            <span class="position">외야수</span>
+                        </div>
+                        <span class="arrow">→</span>
+                    </div>
+                </div>
+
+                <!-- Player Detail Modal -->
+                <div class="player-modal" id="playerModal">
+                    <div class="modal-content">
+                        <button class="modal-close" id="modalClose">✕</button>
+                        <div class="modal-header">
+                            <div class="player-number-large" id="modalNumber">31</div>
+                            <div>
+                                <h2 id="modalName">정수빈</h2>
+                                <p id="modalPosition">두산 베어스 | 외야수</p>
+                            </div>
+                        </div>
+                        <div class="modal-body">
+                            <!-- YouTube Video -->
+                            <div id="youtubeContainer" class="youtube-container"
+                                style="display: none; margin-bottom: 16px; border-radius: 12px; overflow: hidden;">
+                            </div>
+
+                            <h3>🎵 응원가</h3>
+                            <div class="lyrics" id="modalLyrics">
+                                정수빈 정수빈 정수빈~<br>
+                                날아라 날아라 정수빈~<br>
+                                그라운드를 누벼라~<br>
+                                승리를 향해 달려라~
+                            </div>
+                            <div class="cheer-tip">
+                                <span class="tip-icon">💡</span>
+                                <p id="modalTip">등장곡이 나올 때 "수빈아~~~"를 같이 외쳐주세요!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/field_renderer.js"></script>
+    <script src="js/live.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

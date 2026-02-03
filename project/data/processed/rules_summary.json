@@ -1,0 +1,128 @@
+[
+  {
+    "rule_key": "HIT_SINGLE",
+    "title": "단타",
+    "short_def": "타자가 안타로 1루까지 진루",
+    "official_rule": "타구가 수비에 잡히지 않고 1루에 도달하면 단타로 기록된다.",
+    "exception": "수비 실책이 개입되면 안타가 아닐 수 있음"
+  },
+  {
+    "rule_key": "HIT_DOUBLE",
+    "title": "2루타",
+    "short_def": "안타로 2루까지 진루",
+    "official_rule": "타자가 친 공으로 2루에 도달하면 2루타로 기록된다.",
+    "exception": "실책이 주원인일 경우 안타로 인정되지 않을 수 있음"
+  },
+  {
+    "rule_key": "HIT_TRIPLE",
+    "title": "3루타",
+    "short_def": "안타로 3루까지 진루",
+    "official_rule": "타자가 친 공으로 3루에 도달하면 3루타로 기록된다.",
+    "exception": "외야 실책이 크게 개입되면 기록이 변경될 수 있음"
+  },
+  {
+    "rule_key": "HOME_RUN",
+    "title": "홈런",
+    "short_def": "타구가 담장을 넘어 득점",
+    "official_rule": "페어 지역 담장을 넘긴 타구는 홈런으로 인정되며 타자와 주자 모두 득점한다.",
+    "exception": "인플레이 홈런 등 특수 상황 존재"
+  },
+  {
+    "rule_key": "STRIKEOUT",
+    "title": "삼진",
+    "short_def": "스트라이크 3개로 아웃",
+    "official_rule": "스트라이크가 세 번 선언되면 타자는 아웃된다.",
+    "exception": "낫아웃 상황에서는 타자가 출루할 수 있음"
+  },
+  {
+    "rule_key": "GROUND_OUT",
+    "title": "땅볼 아웃",
+    "short_def": "땅볼 타구 처리로 아웃",
+    "official_rule": "땅볼 타구를 수비가 처리하면 타자는 아웃된다.",
+    "exception": "병살 플레이로 이어질 수 있음"
+  },
+  {
+    "rule_key": "FLY_OUT",
+    "title": "플라이 아웃",
+    "short_def": "뜬공을 잡혀 아웃",
+    "official_rule": "수비수가 공중에서 타구를 잡으면 타자는 아웃된다.",
+    "exception": "파울 지역에서 잡혀도 아웃"
+  },
+  {
+    "rule_key": "DOUBLE_PLAY",
+    "title": "병살",
+    "short_def": "한 번의 플레이로 두 명이 아웃",
+    "official_rule": "한 번의 플레이로 두 명의 주자 또는 타자가 아웃되면 병살이 성립한다.",
+    "exception": "상황에 따라 병살이 성립하지 않을 수 있음"
+  },
+  {
+    "rule_key": "FORCE_OUT",
+    "title": "포스 아웃",
+    "short_def": "베이스를 먼저 밟아 아웃",
+    "official_rule": "진루 의무가 있는 주자보다 수비가 베이스를 먼저 밟으면 아웃된다.",
+    "exception": "진루 의무가 없으면 포스 아웃이 아님"
+  },
+  {
+    "rule_key": "STEAL_BASE",
+    "title": "도루",
+    "short_def": "주자가 베이스를 훔침",
+    "official_rule": "투구 동작 중 주자가 다음 베이스로 진루하면 도루로 기록된다.",
+    "exception": "수비 실책이 개입되면 도루로 기록되지 않을 수 있음"
+  },
+  {
+    "rule_key": "WALK_DEF",
+    "title": "볼넷",
+    "short_def": "볼 4개로 타자 출루",
+    "official_rule": "볼이 네 개 선언되면 타자는 1루로 진루한다.",
+    "exception": "고의4구도 포함됨"
+  },
+  {
+    "rule_key": "FOUL_DEF",
+    "title": "파울",
+    "short_def": "파울 지역으로 간 타구",
+    "official_rule": "페어 지역 밖으로 나간 타구는 파울이다.",
+    "exception": "투 스트라이크 이후 파울은 삼진이 아님"
+  },
+  {
+    "rule_key": "BALL_DEF",
+    "title": "볼",
+    "short_def": "스트라이크 존을 벗어난 공",
+    "official_rule": "스트라이크 존을 벗어난 투구는 볼로 판정된다.",
+    "exception": "스윙하면 볼이 아니다"
+  },
+  {
+    "rule_key": "STRIKE_DEF",
+    "title": "스트라이크",
+    "short_def": "유효한 스트라이크 판정",
+    "official_rule": "스트라이크 존을 통과하거나 타자가 스윙하면 스트라이크가 된다.",
+    "exception": "번트 파울 등 예외 규정 존재"
+  },
+  {
+    "rule_key": "HIT_BY_PITCH",
+    "title": "몸에 맞는 공",
+    "short_def": "투구가 타자 몸에 맞아 출루",
+    "official_rule": "투구가 타자의 신체에 맞으면 타자는 1루로 진루한다.",
+    "exception": "회피 의사가 없으면 인정되지 않을 수 있음"
+  },
+  {
+    "rule_key": "SACRIFICE_HIT",
+    "title": "희생타",
+    "short_def": "아웃을 감수하고 주자를 진루",
+    "official_rule": "타자가 아웃되면서 주자를 진루시키면 희생타로 기록될 수 있다.",
+    "exception": "기록원 판단에 따라 인정되지 않을 수 있음"
+  },
+  {
+    "rule_key": "RUN_SCORE",
+    "title": "득점",
+    "short_def": "주자가 홈을 밟아 점수 획득",
+    "official_rule": "주자가 홈 베이스를 밟으면 득점으로 인정된다.",
+    "exception": "3아웃 이전에 홈을 밟아야 함"
+  },
+  {
+    "rule_key": "ERROR_DEF",
+    "title": "실책",
+    "short_def": "수비 실수로 출루 또는 진루",
+    "official_rule": "수비가 처리 가능한 공을 놓치거나 악송구하면 실책이 기록된다.",
+    "exception": "기록원 판단에 따라 안타로 변경될 수 있음"
+  }
+]

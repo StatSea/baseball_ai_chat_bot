@@ -1,0 +1,183 @@
+KBO Relay Replay + Rules/Cheers API 운영 가이드 (통합본)
+==============================================
+
+이 문서는 FastAPI 기반 "KBO Relay Replay API"에 더해,
+- 규정 정리본 API (/rules)
+- 팀별 응원가 URL API (/cheers)
+까지 함께 운영하는 방법을 정리합니다.
+
+참고: PowerShell에서는 curl이 Invoke-WebRequest로 매핑되므로 반드시 curl.exe를 사용하세요.
+
+--------------------------------------------------
+[0] 전제 조건 / 폴더 구조
+--------------------------------------------------
+프로젝트 루트(예): C:\Users\Home\Desktop\project
+
+필수 파일/폴더:
+- main.py
+- data/
+  - raw/
+    - (경기 relay/inning JSON들)
+  - processed/
+    - rules_summary.json         (규정 정리본)
+    - cheers.json                (팀별 응원가: team/title/url)
+
+※ 서버는 startup 시 processed 폴더의 JSON을 로드합니다.
+※ 파일명이 다르면 main.py의 RULES_PATH, CHEERS_PATH를 수정해야 합니다.
+
+--------------------------------------------------
+[1] 서버 실행 (로컬)
+--------------------------------------------------
+터미널 1에서 실행:
+
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+정상 확인:
+curl.exe http://127.0.0.1:8000/health
+
+health 응답에서 rules_count / cheers_count가 0보다 크면 로딩 성공입니다.
+
+--------------------------------------------------
+[2] ngrok으로 외부 공개
+--------------------------------------------------
+터미널 2에서 실행:
+
+ngrok http 8000
+
+출력 예시:
+Forwarding https://xxxx.ngrok-free.dev -> http://localhost:8000
+
+- 챗봇에서 사용할 API BASE URL
+- ngrok 재실행 시 URL이 변경됩니다(주의)
+- 변경 시 챗봇/클라이언트의 BASE_URL도 반드시 갱신하세요.
+
+--------------------------------------------------
+[3] 리플레이 제어 (PowerShell 기준)
+--------------------------------------------------
+※ PowerShell에서는 반드시 curl.exe 사용
+
+▶ 리플레이 시작 (예: 10초 간격)
+curl.exe -X POST "http://127.0.0.1:8000/games/20250922OBSK02025/replay/start?interval=10"
+
+▶ 리플레이 일시정지
+curl.exe -X POST "http://127.0.0.1:8000/games/20250922OBSK02025/replay/pause"
+
+▶ 특정 이벤트로 이동
+curl.exe -X POST "http://127.0.0.1:8000/games/20250922OBSK02025/replay/seek?index=123"
+
+▶ 처음부터 리셋
+curl.exe -X POST "http://127.0.0.1:8000/games/20250922OBSK02025/replay/reset"
+
+--------------------------------------------------
+[4] 경기(릴레이) 핵심 API (챗봇/클라이언트 사용)
+--------------------------------------------------
+- 현재 상태:
+GET /games/{game_id}/state
+
+- 요약 문장(+state 포함):
+GET /games/{game_id}/summary
+
+- 최근 이벤트 텍스트:
+GET /games/{game_id}/commentary?n=5
+
+- 이벤트 검색(로그에서 키워드 찾기):
+GET /games/{game_id}/events/search?q=도루
+
+- SSE 스트리밍(실시간 상태 push):
+GET /games/{game_id}/stream
+
+--------------------------------------------------
+[5] 규정 정리본 API (/rules)
+--------------------------------------------------
+- 전체 규정 목록:
+GET /rules
+
+- rule_key 목록:
+GET /rules/keys
+
+- 특정 규정 조회:
+GET /rules/{rule_key}
+예: /rules/STEAL_BASE
+
+- 규정 검색(키워드):
+GET /rules/search?q=도루
+
+[중요: 한글 검색 호출 방법]
+한글을 그대로 URL에 넣으면 서버가 "Invalid HTTP request"를 낼 수 있습니다.
+PowerShell에서는 아래 방식으로 호출하세요:
+
+curl.exe --get --data-urlencode "q=도루" "http://127.0.0.1:8000/rules/search"
+
+--------------------------------------------------
+[6] 팀별 응원가 API (/cheers)
+--------------------------------------------------
+- 전체 응원가 목록:
+GET /cheers
+
+- 팀 목록:
+GET /cheers/teams
+
+- 팀별 응원가 목록:
+GET /cheers/by_team/{team}
+예: /cheers/by_team/두산
+
+- 응원가 검색(제목 키워드):
+GET /cheers/search?q=라인업
+
+- 팀 필터 + 검색:
+GET /cheers/search?q=라인업&team=SSG
+
+[중요: 한글 검색 호출 방법]
+curl.exe --get --data-urlencode "q=라인업" "http://127.0.0.1:8000/cheers/search"
+curl.exe --get --data-urlencode "q=라인업" --data-urlencode "team=두산" "http://127.0.0.1:8000/cheers/search"
+
+--------------------------------------------------
+[7] 데이터 업데이트 운영 규칙 (rules/cheers)
+--------------------------------------------------
+- rules_summary.json 또는 cheers.json을 수정/교체한 경우:
+  1) 서버 재시작(권장)
+     - 실행 중인 uvicorn을 Ctrl+C로 종료 후 다시 실행
+  2) 또는 (reload 사용 시) 파일 변경 감지로 재시작될 수 있으나,
+     JSON 로딩은 startup에서 수행되므로 재시작을 확실히 권장합니다.
+
+--------------------------------------------------
+[8] 자주 발생하는 오류 & 해결
+--------------------------------------------------
+(1) "FileNotFoundError: rules json not found ..."
+- data/processed/rules_summary.json 경로에 파일이 있는지 확인:
+  dir .\data\processed\rules_summary.json
+- main.py의 RULES_PATH가 project 폴더 기준인지 확인
+
+(2) "FileNotFoundError: cheers json not found ..."
+- data/processed/cheers.json 경로 확인:
+  dir .\data\processed\cheers.json
+
+(3) /rules/search 호출 시 "rule_key not found: search"
+- 라우팅 충돌(동적 경로가 먼저 잡힘) 문제입니다.
+- 해결: /rules/search 엔드포인트가 /rules/{rule_key}보다 위에 선언돼야 합니다.
+  (현재 통합 main.py에서는 이미 해결된 구조여야 합니다.)
+
+(4) "Invalid HTTP request received" (한글 쿼리)
+- 한글 파라미터를 URL 인코딩하지 않고 보냈을 가능성이 큽니다.
+- curl.exe --get --data-urlencode 방식으로 호출하세요.
+
+(5) PowerShell 보안 경고(Invoke-WebRequest)
+- curl이 진짜 curl이 아니라 PowerShell alias일 수 있습니다.
+- 반드시 curl.exe 사용하세요.
+
+--------------------------------------------------
+[9] 운영 체크리스트 (빠른 점검)
+--------------------------------------------------
+- uvicorn 서버 실행됨
+- /health 응답 OK, rules_count/cheers_count 확인
+- (외부 공개 시) ngrok 실행됨, BASE_URL 갱신됨
+- replay/start 호출 완료
+- /games/{game_id}/state가 주기적으로 변함(리플레이 진행)
+- /rules/search, /cheers/search 한글 검색 정상
+
+--------------------------------------------------
+[10] 한 줄 요약
+--------------------------------------------------
+FastAPI 서버가 경기 로그를 가상 시간으로 replay하고,
+동시에 규정(/rules)과 응원가(/cheers)를 API로 제공하여
+챗봇이 '상황 설명 + 규칙 설명 + 응원 정보'를 자연스럽게 결합한다.
