@@ -136,7 +136,7 @@ class ChatManager {
 
     async callWantedLaaSAPI(userMessage) {
         // ✅ 브라우저는 LAAS/Wanted를 직접 호출하지 않고, FastAPI 프록시만 호출합니다.
-        const apiUrl = 'http://127.0.0.1:8000/api/proxy/chat';
+        const apiUrl = 'baseballaichatbot-production.up.railway.app';
 
         const response = await fetch(apiUrl, {
             method: 'POST',
