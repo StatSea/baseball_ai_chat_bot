@@ -41,11 +41,11 @@ app = FastAPI(title="KBO Relay Replay API", version="0.5.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://baseball-ai-chat-bot.vercel.app",  # ✅ production
+        "https://baseball-ai-chat-bot-git-main-statseas-projects.vercel.app",  # ✅ preview
         "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "https://baseball-ai-chat-bot-git-main-statseas-projects.vercel.app",
-        "https://baseball-ai-chat-bot.vercel.app/"
-        # 커스텀 도메인 있으면 여기도 추가
+        "http://localhost:3000",
+            # 커스텀 도메인 있으면 여기도 추가
     ],
     allow_credentials=False,   # 쿠키 안 쓰면 False로 두는 게 안전
     allow_methods=["*"],       # GET/POST/OPTIONS 포함
