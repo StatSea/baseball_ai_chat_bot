@@ -2,11 +2,15 @@
 
 class LiveGameManager {
     constructor() {
-        // API 설정 - 나중에 ngrok URL로 변경
-        // API 설정 - 동일 출처(같은 포트) 사용
-        this.baseUrl = 'http://127.0.0.1:8000'; // FastAPI 서버
-        // 안전장치: baseUrl이 비어있으면 로컬 FastAPI로 강제
-        if (!this.baseUrl) this.baseUrl = 'http://127.0.0.1:8000';
+        // ✅ 배포환경에서는 Railway, 로컬에서는 localhost를 쓰도록 설정
+        const configBase =
+            (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+                ? window.APP_CONFIG.API_BASE_URL
+                : '';
+
+        // config.js가 있으면 그걸 쓰고, 없으면 로컬로 fallback
+        this.baseUrl = configBase || 'http://127.0.0.1:8000';
+
         this.gameId = '20250922OBSK02025';
         this.pollInterval = 3000; // 3초마다 업데이트
         this.isPolling = false;
@@ -17,7 +21,7 @@ class LiveGameManager {
         console.log('✅ LiveGameManager baseUrl:', this.baseUrl);
         this.init();
     }
-
+}
     init() {
         // 초기 상태: 오프라인으로 시작
         this.showOfflineState();
