@@ -12,28 +12,22 @@ class ChatManager {
     this.tone = null;       // '친구' | '해설위원' | '초보자' | '응원단'
     this.fanTeam = null;    // e.g., '두산' | '중립'
 
-    // ✅ API Base (Railway / Local 자동 분기)
+    // ✅ FastAPI(railway) base
     this.apiBaseUrl = this.getApiBaseUrl();
+
+    console.log('✅ ChatManager apiBaseUrl:', this.apiBaseUrl);
 
     this.init();
   }
 
   getApiBaseUrl() {
-    const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
-
+    // 우선순위: window.APP_CONFIG.API_BASE_URL > 기본 railway
     const configured =
       (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
         ? String(window.APP_CONFIG.API_BASE_URL).trim()
         : '';
 
-    // 배포 환경은 Railway 기본
-    if (!isLocal) {
-      const base = configured || 'https://baseballaichatbot-production.up.railway.app';
-      return base.replace(/\/$/, '');
-    }
-
-    // 로컬 개발은 FastAPI 로컬 서버 기본
-    const base = configured || 'http://127.0.0.1:8000';
+    const base = configured || 'https://baseballaichatbot-production.up.railway.app';
     return base.replace(/\/$/, '');
   }
 
@@ -55,13 +49,13 @@ class ChatManager {
       });
     });
 
-    // Onboarding: quick buttons hidden until ready
+    // ✅ Onboarding: quick buttons are hidden until ready
     if (this.quickQuestions) this.quickQuestions.style.display = 'none';
 
-    // placeholder starts with tone selection prompt
+    // ✅ placeholder starts with tone selection prompt
     this.setPlaceholderByStep();
 
-    // initial greeting
+    // ✅ Step 0: initial greeting (no API call)
     this.addBotText(
       "안녕하세요! 저는 AI 해설위원이에요 ⚾\n\n" +
       "야구 경기 중 궁금한 점이 있으면 편하게 물어보세요!\n" +
@@ -91,7 +85,7 @@ class ChatManager {
     this.addMessage(message, 'user');
     this.chatInput.value = '';
 
-    // Onboarding flow
+    // ✅ Onboarding flow (no API calls until ready)
     if (this.step === 'ask_tone') {
       const tone = this.normalizeTone(message);
       if (!tone) {
@@ -120,6 +114,7 @@ class ChatManager {
       this.step = 'ready';
       this.setPlaceholderByStep();
 
+      // ✅ READY: show quick questions
       if (this.quickQuestions) this.quickQuestions.style.display = 'flex';
 
       this.addBotText(
@@ -133,11 +128,11 @@ class ChatManager {
       return;
     }
 
-    // READY: call API
+    // ✅ READY: now call API
     this.showTypingIndicator();
 
     try {
-      const apiResponse = await this.callWantedLaaSAPI(message);
+      const apiResponse = await this.callProxyChat(message);
 
       this.hideTypingIndicator();
       if (apiResponse) {
@@ -153,28 +148,31 @@ class ChatManager {
     }
   }
 
-  async callWantedLaaSAPI(userMessage) {
-    // ✅ 반드시 절대 URL + 올바른 엔드포인트로 호출
-    const apiUrl = `${this.apiBaseUrl}/api/proxy/chat`;
+  async callProxyChat(userMessage) {
+    // ✅ 반드시 절대 URL + 정확한 path
+    const url = `${this.apiBaseUrl}/api/proxy/chat`;
 
-    const response = await fetch(apiUrl, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        params: { tone: this.tone, fan_team: this.fanTeam },
+        params: {
+          tone: this.tone,
+          fan_team: this.fanTeam,
+        },
         messages: [{ role: 'user', content: userMessage }]
       })
     });
 
     if (!response.ok) {
-      const errText = await response.text().catch(() => '');
-      console.warn(`Proxy request failed: ${response.status}`, errText);
+      const text = await response.text().catch(() => '');
+      console.warn(`Proxy request failed: ${response.status}`, text);
       throw new Error(`Proxy request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log("Proxy Response Data:", data);
 
+    // Wanted LaaS 응답 형태 대응
     const content =
       (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
       data.result ||
@@ -195,11 +193,13 @@ class ChatManager {
   normalizeTone(input) {
     const s = String(input || '').trim().toLowerCase();
 
+    // allow numeric shortcuts
     if (s === '1') return '친구';
     if (s === '2') return '해설위원';
     if (s === '3') return '초보자';
     if (s === '4') return '응원단';
 
+    // korean keywords
     if (s.includes('친구')) return '친구';
     if (s.includes('해설')) return '해설위원';
     if (s.includes('초보')) return '초보자';
@@ -211,6 +211,7 @@ class ChatManager {
   normalizeTeam(input) {
     const s = String(input || '').trim();
     if (!s) return null;
+
     if (s === '중립' || s.toLowerCase() === 'neutral') return '중립';
     return s;
   }
