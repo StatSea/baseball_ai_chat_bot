@@ -908,6 +908,7 @@ async def replay_loop(game_id: str):
             await asyncio.sleep(0.2)
             continue
 
+
         meta.index += 1
         await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
         await asyncio.sleep(max(0.1, float(meta.interval)))
