@@ -61,7 +61,7 @@ class ChatManager {
       "야구 경기 중 궁금한 점이 있으면 편하게 물어보세요!\n" +
       "규칙, 판정, 용어 등 뭐든 쉽게 설명해드릴게요.\n\n" +
       "우선 어떤 말투를 원하시는지 골라주세요!\n" +
-      "친구 / 전문해설위원 / 왕초보자 맞춤 / 치어리더"
+      "친구, 전문해설위원, 왕초보자 맞춤, 치어리더"
     );
   }
 
@@ -89,7 +89,7 @@ class ChatManager {
     if (this.step === 'ask_tone') {
       const tone = this.normalizeTone(message);
       if (!tone) {
-        this.addBotText("말투를 다시 골라주세요!\n친구 / 전문해설위원 / 왕초보자 맞춤 / 치어리더");
+        this.addBotText("말투를 다시 골라주세요!\n친구, 전문해설위원, 왕초보자 맞춤, 치어리더");
         return;
       }
       this.tone = tone;
