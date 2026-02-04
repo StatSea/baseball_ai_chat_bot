@@ -91,8 +91,7 @@ body {
     max-width: 100%;
     margin: 0 auto;
     min-height: 100vh;
-    min-height: 100dvh;
-background: var(--bg-primary);
+    background: var(--bg-primary);
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 40px var(--shadow-color);
@@ -340,6 +339,9 @@ background: var(--bg-primary);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    height: 100%;
+    max-height: calc(100vh - 250px);
+    /* 헤더, 탭, 배너 제외한 높이 */
 }
 
 .messages {
