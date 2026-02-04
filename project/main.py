@@ -1017,7 +1017,10 @@ async def commentary(game_id: str, n: int = Query(5, ge=1, le=20)):
 # =========================================================
 @app.post("/api/proxy/chat")
 async def proxy_chat(request: Request):
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON body: {e}")
 
     api_key = os.getenv("WANTED_LAAS_API_KEY")
     project_id = os.getenv("WANTED_LAAS_PROJECT_ID")
@@ -1049,20 +1052,62 @@ async def proxy_chat(request: Request):
         "apiKey": api_key,
     }
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(api_url, json=payload, headers=headers, timeout=30.0)
+    # ✅ 간헐 502 흡수용: 최대 2회 재시도(짧은 backoff)
+    last_err = None
+    for attempt in range(1, 3):
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
+                resp = await client.post(api_url, json=payload, headers=headers)
 
-    if resp.status_code != 200:
-        return JSONResponse(
-            status_code=resp.status_code,
-            content={
-                "error": "LaaS API Error",
-                "status": resp.status_code,
-                "body": resp.text,
-                "sent_payload": payload,
-            },
-        )
-    return resp.json()
+            # 200 아니면 그대로 내리되, HTML이면 "Upstream 502"로 명확히 처리
+            if resp.status_code != 200:
+                text = resp.text or ""
+                # Cloudflare/HTML 에러 페이지 감지
+                if "<html" in text.lower() or "cloudflare" in text.lower():
+                    return JSONResponse(
+                        status_code=502,
+                        content={
+                            "error": "LaaS Upstream Error (HTML from gateway)",
+                            "status": resp.status_code,
+                            "body": text[:1000],   # 너무 길면 자르기
+                            "sent_payload": payload,
+                        },
+                    )
+
+                return JSONResponse(
+                    status_code=resp.status_code,
+                    content={
+                        "error": "LaaS API Error",
+                        "status": resp.status_code,
+                        "body": text,
+                        "sent_payload": payload,
+                    },
+                )
+
+            # ✅ 200이어도 JSON이 아닐 수 있으니 방어
+            try:
+                return resp.json()
+            except Exception:
+                return JSONResponse(
+                    status_code=502,
+                    content={
+                        "error": "LaaS returned non-JSON on 200",
+                        "body": (resp.text or "")[:1000],
+                        "sent_payload": payload,
+                    },
+                )
+
+        except (httpx.ReadTimeout, httpx.ConnectError, httpx.RemoteProtocolError) as e:
+            last_err = str(e)
+            # backoff
+            await asyncio.sleep(0.3 * attempt)
+            continue
+        except Exception as e:
+            last_err = str(e)
+            break
+
+    # 재시도 실패
+    raise HTTPException(status_code=502, detail=f"LaaS request failed after retries: {last_err}")
 
 # =========================================================
 # Mount Static Files (Must be last)
