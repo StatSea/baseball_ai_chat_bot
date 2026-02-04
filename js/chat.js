@@ -60,7 +60,7 @@ class ChatManager {
       "야구 경기 중 궁금한 점이 있으면 편하게 물어보세요!\n" +
       "규칙, 판정, 용어 등 뭐든 쉽게 설명해드릴게요.\n\n" +
       "우선 어떤 말투를 원하시는지 골라주세요!\n" +
-      "친구 / 전문해설위원 / 왕초보자 맞춤 / 치어리더\n" 
+      "친구 / 전문 해설위원 / 왕초보자 맞춤 / 치어리더\n" 
 
     );
   }
@@ -202,13 +202,13 @@ class ChatManager {
 
     // allow numeric shortcuts
     if (s === '1') return '친구';
-    if (s === '2') return '전문해설위원';
+    if (s === '2') return '전문 해설위원';
     if (s === '3') return '왕초보자 맞춤';
     if (s === '4') return '치어리더';
 
     // korean keywords
     if (s.includes('친구')) return '친구';
-    if (s.includes('해설')) return '전문해설위원';
+    if (s.includes('해설')) return '전문 해설위원';
     if (s.includes('초보')) return '왕초보자 맞춤';
     if (s.includes('치어')) return '치어리더';
     if (s.includes('응원')) return '치어리더'; // 사용자가 "응원단"이라고 쳐도 치어리더로 처리
