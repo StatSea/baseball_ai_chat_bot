@@ -28,7 +28,7 @@
             </div>
         </header>
 
-        <!-- Live Game Banner (초기값은 '오프라인'으로 두고, live.js가 API 결과로 갱신) -->
+        <!-- Live Game Banner -->
         <div class="live-banner offline" id="liveBanner">
             <div class="live-indicator">
                 <span class="live-dot" style="display:none;"></span>
@@ -56,95 +56,63 @@
 
         <!-- Chat Tab Content -->
         <main class="tab-content active" id="chatTab">
-            <div class="chat-container">
-                <div class="messages" id="messages">
+            <div class="chat-container" id="chatWrap">
 
-                </div>
+                <!-- ✅ messages만 스크롤되는 영역 -->
+                <div class="messages" id="messages"></div>
 
-                <!-- Quick Questions -->
-                <div class="quick-questions" id="quickQuestions" style="display:none;">
-                    <button class="quick-btn" data-question="1루가 뭐야?">1루?</button>
-                    <button class="quick-btn" data-question="병살이 뭐야? 왜 선언됐어?">병살이란?</button>
-                    <button class="quick-btn" data-question="지금 무슨 상황이야?">지금 상황</button>
-                    <button class="quick-btn" data-question="파울이랑 페어가 뭐야?">파울,페어</button>
-                </div>
+                <!-- ✅ 하단 고정 영역(quick + input) -->
+                <div class="chat-bottom">
 
-                <!-- Chat Input -->
-                <div class="chat-input-container">
-                    <input type="text" class="chat-input" id="chatInput" placeholder="말투를 골라주세요 (친구/해설위원/초보자/응원단)">
-                    <button class="send-btn" id="sendBtn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
-                        </svg>
-                    </button>
+                    <!-- Quick Questions -->
+                    <div class="quick-questions" id="quickQuestions" style="display:none;">
+                        <button class="quick-btn" data-question="1루가 뭐야?">1루?</button>
+                        <button class="quick-btn" data-question="병살이 뭐야? 왜 선언됐어?">병살이란?</button>
+                        <button class="quick-btn" data-question="지금 무슨 상황이야?">지금 상황</button>
+                        <button class="quick-btn" data-question="파울이랑 페어가 뭐야?">파울,페어</button>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="말투를 골라주세요 (친구/전문해설위원/왕초보자/치어리더)">
+                        <button class="send-btn" id="sendBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" />
+                            </svg>
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </main>
 
-        <!-- Cheering Tab Content -->
+        <!-- Cheering Tab Content (원본 유지) -->
         <main class="tab-content" id="cheeringTab">
             <div class="cheering-container">
                 <!-- Team Selector -->
                 <div class="team-selector">
-                    <button class="team-btn" data-team="doosan">
-                        <span class="team-logo">🐻</span>
-                        <span>두산</span>
-                    </button>
-                    <button class="team-btn" data-team="samsung">
-                        <span class="team-logo">🦁</span>
-                        <span>삼성</span>
-                    </button>
-                    <button class="team-btn" data-team="lg">
-                        <span class="team-logo">🔥</span>
-                        <span>LG</span>
-                    </button>
-                    <button class="team-btn" data-team="kiwoom">
-                        <span class="team-logo">🦸🏻</span>
-                        <span>키움</span>
-                    </button>
-                    <button class="team-btn" data-team="kt">
-                        <span class="team-logo">🧙</span>
-                        <span>KT</span>
-                    </button>
-                    <button class="team-btn" data-team="kia">
-                        <span class="team-logo">🐯</span>
-                        <span>KIA</span>
-                    </button>
-                    <button class="team-btn" data-team="hanwha">
-                        <span class="team-logo">🦅</span>
-                        <span>한화</span>
-                    </button>
-                    <button class="team-btn" data-team="nc">
-                        <span class="team-logo">🦕</span>
-                        <span>NC</span>
-                    </button>
-                    <button class="team-btn" data-team="lotte">
-                        <span class="team-logo">🛳️</span>
-                        <span>롯데</span>
-                    </button>
-                    <button class="team-btn" data-team="ssg">
-                        <span class="team-logo">🛸</span>
-                        <span>SSG</span>
-                    </button>
+                    <button class="team-btn" data-team="doosan"><span class="team-logo">🐻</span><span>두산</span></button>
+                    <button class="team-btn" data-team="samsung"><span class="team-logo">🦁</span><span>삼성</span></button>
+                    <button class="team-btn" data-team="lg"><span class="team-logo">🔥</span><span>LG</span></button>
+                    <button class="team-btn" data-team="kiwoom"><span class="team-logo">🦸🏻</span><span>키움</span></button>
+                    <button class="team-btn" data-team="kt"><span class="team-logo">🧙</span><span>KT</span></button>
+                    <button class="team-btn" data-team="kia"><span class="team-logo">🐯</span><span>KIA</span></button>
+                    <button class="team-btn" data-team="hanwha"><span class="team-logo">🦅</span><span>한화</span></button>
+                    <button class="team-btn" data-team="nc"><span class="team-logo">🦕</span><span>NC</span></button>
+                    <button class="team-btn" data-team="lotte"><span class="team-logo">🛳️</span><span>롯데</span></button>
+                    <button class="team-btn" data-team="ssg"><span class="team-logo">🛸</span><span>SSG</span></button>
                 </div>
 
-                <!-- Search -->
                 <div class="player-search">
                     <input type="text" class="search-input" id="playerSearch" placeholder="선수 이름 또는 등번호 검색...">
                 </div>
 
-                <!-- Chant Type Toggle -->
                 <div class="chant-toggle">
-                    <button class="chant-toggle-btn active" data-type="player">
-                        <span>⚾</span> 선수 응원가
-                    </button>
-                    <button class="chant-toggle-btn" data-type="team">
-                        <span>🎵</span> 팀 응원가
-                    </button>
+                    <button class="chant-toggle-btn active" data-type="player"><span>⚾</span> 선수 응원가</button>
+                    <button class="chant-toggle-btn" data-type="team"><span>🎵</span> 팀 응원가</button>
                 </div>
 
-                <!-- Player List -->
                 <div class="player-list" id="playerList">
                     <div class="player-card" data-player="jungsoobin">
                         <div class="player-number">31</div>
@@ -156,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Player Detail Modal -->
                 <div class="player-modal" id="playerModal">
                     <div class="modal-content">
                         <button class="modal-close" id="modalClose">✕</button>
@@ -168,7 +135,6 @@
                             </div>
                         </div>
                         <div class="modal-body">
-                            <!-- YouTube Video -->
                             <div id="youtubeContainer" class="youtube-container" style="display: none; margin-bottom: 16px; border-radius: 12px; overflow: hidden;"></div>
 
                             <h3>🎵 응원가</h3>
@@ -189,7 +155,7 @@
         </main>
     </div>
 
-    <!-- ✅ config.js는 다른 스크립트보다 먼저 로드되어야 함 -->
+    <!-- config.js는 다른 스크립트보다 먼저 -->
     <script src="js/config.js"></script>
     <script src="js/data.js"></script>
     <script src="js/field_renderer.js"></script>
