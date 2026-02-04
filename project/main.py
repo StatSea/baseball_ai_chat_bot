@@ -903,13 +903,12 @@ async def replay_loop(game_id: str):
             await asyncio.sleep(0.2)
             continue
 
-        if meta.index >= len(events) - 1:
-            meta.index = 0          # ✅ 처음으로 되감기
-            meta.running = True     # ✅ 계속 재생 유지 
-            await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
-            await asyncio.sleep(max(0.1, float(meta.interval)))
-            continue
-
+if meta.index >= len(events) - 1:
+    meta.index = 0          # ✅ 처음으로 되감기
+    meta.running = True     # ✅ 계속 재생 유지
+    await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
+    await asyncio.sleep(max(0.1, float(meta.interval)))
+    continue
 
         meta.index += 1
         await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
