@@ -195,15 +195,15 @@ class ChatManager {
 
     // allow numeric shortcuts
     if (s === '1') return '친구';
-    if (s === '2') return '해설위원';
-    if (s === '3') return '초보자';
-    if (s === '4') return '응원단';
+    if (s === '2') return '전문해설위원';
+    if (s === '3') return '왕초보자 맞춤';
+    if (s === '4') return '치어리더';
 
     // korean keywords
     if (s.includes('친구')) return '친구';
-    if (s.includes('해설')) return '해설위원';
-    if (s.includes('초보')) return '초보자';
-    if (s.includes('응원')) return '응원단';
+    if (s.includes('해설')) return '전문해설위원';
+    if (s.includes('초보')) return '왕초보자 맞춤';
+    if (s.includes('응원')) return '치어리더';
 
     return null;
   }
