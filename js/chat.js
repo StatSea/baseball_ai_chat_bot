@@ -9,12 +9,11 @@ class ChatManager {
 
     // Onboarding state
     this.step = 'ask_tone'; // 'ask_tone' | 'ask_team' | 'ready'
-    this.tone = null;       // '친구' | '해설위원' | '초보자' | '응원단'
+    this.tone = null;       // '친구' | '전문해설위원' | '왕초보자 맞춤' | '치어리더'
     this.fanTeam = null;    // e.g., '두산' | '중립'
 
     // ✅ FastAPI(railway) base
     this.apiBaseUrl = this.getApiBaseUrl();
-
     console.log('✅ ChatManager apiBaseUrl:', this.apiBaseUrl);
 
     this.init();
@@ -61,7 +60,8 @@ class ChatManager {
       "야구 경기 중 궁금한 점이 있으면 편하게 물어보세요!\n" +
       "규칙, 판정, 용어 등 뭐든 쉽게 설명해드릴게요.\n\n" +
       "우선 어떤 말투를 원하시는지 골라주세요!\n" +
-      "친구, 전문해설위원, 왕초보자 맞춤, 치어리더"
+      "친구 / 전문해설위원 / 왕초보자 맞춤 / 치어리더\n" +
+      "(숫자 1~4로 입력해도 돼요)"
     );
   }
 
@@ -69,7 +69,8 @@ class ChatManager {
     if (!this.chatInput) return;
 
     if (this.step === 'ask_tone') {
-      this.chatInput.placeholder = "말투를 골라주세요 (친구/해설위원/초보자/응원단)";
+      this.chatInput.placeholder =
+        "말투를 골라주세요 (1 친구 / 2 전문해설위원 / 3 왕초보자 맞춤 / 4 치어리더)";
     } else if (this.step === 'ask_team') {
       this.chatInput.placeholder = "응원하는 팀을 입력해주세요 (예: 중립, 두산, SSG...)";
     } else {
@@ -89,9 +90,14 @@ class ChatManager {
     if (this.step === 'ask_tone') {
       const tone = this.normalizeTone(message);
       if (!tone) {
-        this.addBotText("말투를 다시 골라주세요!\n친구, 전문해설위원, 왕초보자 맞춤, 치어리더");
+        this.addBotText(
+          "말투를 다시 골라주세요!\n" +
+          "친구 / 전문해설위원 / 왕초보자 맞춤 / 치어리더\n" +
+          "(숫자 1~4도 가능)"
+        );
         return;
       }
+
       this.tone = tone;
       this.step = 'ask_team';
       this.setPlaceholderByStep();
@@ -110,6 +116,7 @@ class ChatManager {
         this.addBotText("응원팀을 다시 입력해주세요!\n예) 중립, 두산, SSG, LG ...");
         return;
       }
+
       this.fanTeam = team;
       this.step = 'ready';
       this.setPlaceholderByStep();
@@ -203,7 +210,8 @@ class ChatManager {
     if (s.includes('친구')) return '친구';
     if (s.includes('해설')) return '전문해설위원';
     if (s.includes('초보')) return '왕초보자 맞춤';
-    if (s.includes('응원')) return '치어리더';
+    if (s.includes('치어')) return '치어리더';
+    if (s.includes('응원')) return '치어리더'; // 사용자가 "응원단"이라고 쳐도 치어리더로 처리
 
     return null;
   }
@@ -216,32 +224,32 @@ class ChatManager {
     return s;
   }
 
-addMessage(text, sender) {
-  const msgDiv = document.createElement('div');
-  msgDiv.classList.add('message', sender);
+  addMessage(text, sender) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message', sender);
 
-  let contentHtml = '';
+    let contentHtml = '';
 
-  if (sender === 'bot') {
-    contentHtml = `
-      <div class="message-content">
-        <div class="avatar-icon" style="font-size: 24px; margin-right: 8px;">🤖</div>
-        <div class="bubble">${text}</div>
-      </div>
-    `;
-  } else {
-    // ✅ 유저 메시지: "나" 표시 제거하고 bubble만
-    contentHtml = `
-      <div class="message-content">
-        <div class="bubble">${text}</div>
-      </div>
-    `;
+    if (sender === 'bot') {
+      contentHtml = `
+        <div class="message-content">
+          <div class="avatar-icon" style="font-size: 24px; margin-right: 8px;">🤖</div>
+          <div class="bubble">${text}</div>
+        </div>
+      `;
+    } else {
+      // ✅ 유저 메시지: "나" 표시 제거하고 bubble만
+      contentHtml = `
+        <div class="message-content">
+          <div class="bubble">${text}</div>
+        </div>
+      `;
+    }
+
+    msgDiv.innerHTML = contentHtml;
+    this.messagesContainer.appendChild(msgDiv);
+    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
   }
-
-  msgDiv.innerHTML = contentHtml;
-  this.messagesContainer.appendChild(msgDiv);
-  this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-}
 
   showTypingIndicator() {
     const msgDiv = document.createElement('div');
