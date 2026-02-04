@@ -216,31 +216,32 @@ class ChatManager {
     return s;
   }
 
-  addMessage(text, sender) {
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('message', sender);
+addMessage(text, sender) {
+  const msgDiv = document.createElement('div');
+  msgDiv.classList.add('message', sender);
 
-    let contentHtml = '';
-    if (sender === 'bot') {
-      contentHtml = `
-        <div class="message-content">
-          <div class="avatar-icon" style="font-size: 24px; margin-right: 8px;">🤖</div>
-          <div class="bubble">${text}</div>
-        </div>
-      `;
-    } else {
-      contentHtml = `
-        <div class="message-content">
-          <div class="bubble">${text}</div>
-          <div class="avatar-placeholder">나</div>
-        </div>
-      `;
-    }
+  let contentHtml = '';
 
-    msgDiv.innerHTML = contentHtml;
-    this.messagesContainer.appendChild(msgDiv);
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+  if (sender === 'bot') {
+    contentHtml = `
+      <div class="message-content">
+        <div class="avatar-icon" style="font-size: 24px; margin-right: 8px;">🤖</div>
+        <div class="bubble">${text}</div>
+      </div>
+    `;
+  } else {
+    // ✅ 유저 메시지: "나" 표시 제거하고 bubble만
+    contentHtml = `
+      <div class="message-content">
+        <div class="bubble">${text}</div>
+      </div>
+    `;
   }
+
+  msgDiv.innerHTML = contentHtml;
+  this.messagesContainer.appendChild(msgDiv);
+  this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+}
 
   showTypingIndicator() {
     const msgDiv = document.createElement('div');
