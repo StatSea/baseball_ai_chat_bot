@@ -175,7 +175,6 @@ body {
 }
 
 @keyframes bounce {
-
     0%,
     100% {
         transform: translateY(0);
@@ -246,7 +245,6 @@ body {
 }
 
 @keyframes pulse {
-
     0%,
     100% {
         opacity: 1;
@@ -326,6 +324,7 @@ body {
     display: none;
     flex: 1;
     overflow: hidden;
+    min-height: 0; /* ✅ flex 내부 스크롤 안정화 */
 }
 
 .tab-content.active {
@@ -334,14 +333,31 @@ body {
 }
 
 /* ===== Chat Container ===== */
+/* ✅ 수정: max-height(calc) 제거 + min-height:0 추가 */
 .chat-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     height: 100%;
-    max-height: calc(100vh - 250px);
-    /* 헤더, 탭, 배너 제외한 높이 */
+    min-height: 0;      /* ✅ 중요 */
+    max-height: none;   /* ✅ 기존 calc 제거 */
+}
+
+/* ✅ 추가: chatWrap + chat-bottom(quick+input) 고정 */
+#chatWrap {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* ✅ 중요 */
+}
+
+.chat-bottom {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
 }
 
 .messages {
@@ -351,8 +367,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    min-height: 0;
-    /* flex 내부 스크롤을 위해 필요 */
+    min-height: 0; /* flex 내부 스크롤을 위해 필요 */
+}
+
+/* ✅ 추가: 마지막 메시지가 하단 입력창/퀵버튼에 가리지 않게 */
+#messages {
+    padding-bottom: 140px; /* quick+input 높이 여유 (필요시 120~180 조절) */
 }
 
 /* ===== Message Styles ===== */
@@ -458,7 +478,6 @@ body {
 }
 
 @keyframes typingBounce {
-
     0%,
     60%,
     100% {
@@ -559,6 +578,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
 
 /* ===== Team Selector ===== */
@@ -678,6 +698,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
+    min-height: 0;
 }
 
 /* ===== Section Header ===== */
@@ -775,7 +796,6 @@ body {
     width: 56px;
     height: 52px;
     background: var(--navy-main);
-    /* 정교한 유니폼 모양 (V넥 소매 포함) */
     clip-path: polygon(25% 0%, 40% 0%, 50% 12%, 60% 0%, 75% 0%,
             100% 15%, 100% 45%, 88% 45%, 88% 100%,
             12% 100%, 12% 45%, 0% 45%, 0% 15%);
@@ -836,6 +856,7 @@ body {
     padding: var(--spacing-lg);
     transform: translateY(100%);
     transition: transform 0.3s ease;
+    position: relative;
 }
 
 .player-modal.active .modal-content {
@@ -871,7 +892,6 @@ body {
     width: 80px;
     height: 75px;
     background: var(--navy-main);
-    /* 정교한 유니폼 모양 (V넥 소매 포함) */
     clip-path: polygon(25% 0%, 40% 0%, 50% 12%, 60% 0%, 75% 0%,
             100% 15%, 100% 45%, 88% 45%, 88% 100%,
             12% 100%, 12% 45%, 0% 45%, 0% 15%);
@@ -1004,9 +1024,11 @@ body {
         padding: var(--spacing-md);
     }
 
+    /* ✅ 수정: wrap 때문에 하단바 높이가 늘어나는 현상 방지 */
     .quick-questions {
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;     /* ✅ wrap 금지 */
+        overflow-x: auto;      /* ✅ 가로 스크롤 유지 */
     }
 
     .live-banner {
@@ -1085,23 +1107,18 @@ body {
     position: relative;
     width: 100%;
     padding-bottom: 85%;
-    /* Aspect ratio */
     background: #2e7d32;
-    /* Grass color */
     border-radius: var(--radius-md);
     border: 2px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
-    /* Grass texture effect */
     background-image: repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 0, 0, 0.05) 20px, rgba(0, 0, 0, 0.05) 40px);
 }
 
-/* Base Diamond Layout */
 .diamond-shape {
     position: absolute;
     width: 55%;
     height: 55%;
     background: #d7ccc8;
-    /* Dirt color */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) rotate(45deg);
@@ -1109,7 +1126,6 @@ body {
     border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Infield Grass */
 .diamond-inner-grass {
     position: absolute;
     width: 65%;
@@ -1118,23 +1134,19 @@ body {
     top: 17.5%;
     left: 17.5%;
     border-radius: 10%;
-    /* Keep the texture */
     background-image: repeating-linear-gradient(-45deg, transparent, transparent 15px, rgba(0, 0, 0, 0.05) 15px, rgba(0, 0, 0, 0.05) 30px);
 }
 
-/* Bases */
 .base {
     position: absolute;
     width: 24px;
     height: 24px;
     background: white;
     transform: rotate(45deg);
-    /* Counteract diamond rotation if needed, or be part of it */
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     z-index: 10;
 }
 
-/* Position bases relative to diamond-shape container */
 .base-1 {
     top: 50%;
     right: -12px;
@@ -1159,20 +1171,16 @@ body {
     transform: translateX(-50%);
     width: 24px;
     height: 12px;
-    /* Home plate unique shape approximation */
     background: white;
     clip-path: polygon(0 0, 50% 100%, 100% 0);
     border-radius: 0;
 }
 
-/* Active Base (Runner on base) */
 .base.active {
     background: #ef4444;
-    /* Red for runner */
     box-shadow: 0 0 10px #ef4444;
 }
 
-/* Players (Fielders & Runners) */
 .player-marker {
     position: absolute;
     background: rgba(0, 0, 0, 0.6);
@@ -1187,7 +1195,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Fielder Positions (Approximate % on container) */
 .pos-pitcher {
     top: 50%;
     left: 50%;
@@ -1233,7 +1240,6 @@ body {
     right: 20%;
 }
 
-/* Batter Info Box */
 .batter-info {
     position: absolute;
     bottom: 15px;
@@ -1251,7 +1257,6 @@ body {
     z-index: 30;
 }
 
-/* SBO Count Overlay */
 .sbo-overlay {
     position: absolute;
     top: 15px;
@@ -1291,19 +1296,14 @@ body {
     background: #555;
 }
 
-/* Specific SBO Colors */
 .sbo-b .sbo-dot.active {
     background: #22c55e;
 }
 
-/* Green */
 .sbo-s .sbo-dot.active {
     background: #eab308;
 }
 
-/* Yellow */
 .sbo-o .sbo-dot.active {
     background: #ef4444;
 }
-
-/* Red */
