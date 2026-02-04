@@ -70,7 +70,7 @@ class ChatManager {
 
     if (this.step === 'ask_tone') {
       this.chatInput.placeholder =
-        "말투를 골라주세요 (1 친구 / 2 전문해설위원 / 3 왕초보자 맞춤 / 4 치어리더)";
+        "말투를 골라주세요";
     } else if (this.step === 'ask_team') {
       this.chatInput.placeholder = "응원하는 팀을 입력해주세요 (예: 중립, 두산, SSG...)";
     } else {
