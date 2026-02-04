@@ -1052,16 +1052,25 @@ async def proxy_chat(request: Request):
         "apiKey": api_key,
     }
 
-    # ✅ 간헐 502 흡수용: 최대 2회 재시도(짧은 backoff)
+    OVERLOAD_MSG = "잠깐만요! ⚾\n지금 AI 해설 서버에 질문이 한꺼번에 몰려서 숨 고르는 중이에요 😅\n잠시만 기다렸다가 다시 물어봐 주세요!"
+
     last_err = None
     for attempt in range(1, 3):
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
                 resp = await client.post(api_url, json=payload, headers=headers)
 
-            # 200 아니면 그대로 내리되, HTML이면 "Upstream 502"로 명확히 처리
+            # ✅ LAAS 과부하/게이트웨이 계열이면 고정 문구로 통일해서 내려주기
+            if resp.status_code in (429, 500, 502, 503, 504):
+                return JSONResponse(
+                    status_code=503,  # 일시적 과부하 의미로 통일 (프론트 처리 쉬움)
+                    content={"error": "LAAS_OVERLOADED", "message": OVERLOAD_MSG},
+                )
+
+            # 그 외 비정상 응답은 기존대로 상세 전달(디버깅용)
             if resp.status_code != 200:
                 text = resp.text or ""
+
                 # Cloudflare/HTML 에러 페이지 감지
                 if "<html" in text.lower() or "cloudflare" in text.lower():
                     return JSONResponse(
@@ -1069,7 +1078,7 @@ async def proxy_chat(request: Request):
                         content={
                             "error": "LaaS Upstream Error (HTML from gateway)",
                             "status": resp.status_code,
-                            "body": text[:1000],   # 너무 길면 자르기
+                            "body": text[:1000],
                             "sent_payload": payload,
                         },
                     )
@@ -1099,15 +1108,18 @@ async def proxy_chat(request: Request):
 
         except (httpx.ReadTimeout, httpx.ConnectError, httpx.RemoteProtocolError) as e:
             last_err = str(e)
-            # backoff
             await asyncio.sleep(0.3 * attempt)
             continue
         except Exception as e:
             last_err = str(e)
             break
 
-    # 재시도 실패
-    raise HTTPException(status_code=502, detail=f"LaaS request failed after retries: {last_err}")
+    # ✅ 재시도 실패도 동일하게 과부하 안내로 내려주기
+    return JSONResponse(
+        status_code=503,
+        content={"error": "LAAS_OVERLOADED", "message": OVERLOAD_MSG, "detail": last_err},
+    )
+
 
 # =========================================================
 # Mount Static Files (Must be last)
