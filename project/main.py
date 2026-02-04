@@ -754,30 +754,37 @@ REPLAY_TASKS: Dict[str, asyncio.Task] = {}
 
 async def replay_loop(game_id: str):
     while True:
-        meta = REPLAY_STATE.get(game_id)
-        if meta is None:
-            return
+        try:
+            meta = REPLAY_STATE.get(game_id)
+            if meta is None:
+                return
 
-        if not meta.running:
-            await asyncio.sleep(0.1)
-            continue
+            if not meta.running:
+                await asyncio.sleep(0.1)
+                continue
 
-        events = get_events(game_id)
-        if len(events) == 0:
-            meta.running = False
-            await asyncio.sleep(0.2)
-            continue
+            events = get_events(game_id)
+            if len(events) == 0:
+                meta.running = False
+                await asyncio.sleep(0.2)
+                continue
 
-        # 끝까지 갔으면 멈춤(원하면 반복재생으로 변경 가능)
-        if meta.index >= len(events) - 1:
-            meta.running = False
+            # ✅ 끝까지 가면 0으로 되돌려서 계속 재생
+            if meta.index >= len(events) - 1:
+                meta.index = 0
+                await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
+                await asyncio.sleep(max(0.1, float(meta.interval)))
+                continue
+
+            meta.index += 1
             await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
-            await asyncio.sleep(0.2)
-            continue
+            await asyncio.sleep(max(0.1, float(meta.interval)))
 
-        meta.index += 1
-        await broadcast_sse(game_id, {"type": "state", "data": build_state(game_id)})
-        await asyncio.sleep(max(0.1, float(meta.interval)))
+        except Exception as e:
+            # ✅ task가 예외로 죽으면 "한 번만 돌고 멈춘 것처럼" 보임 → 로그 남기고 잠깐 쉬고 계속
+            print(f"[replay_loop error] game_id={game_id} err={e}")
+            await asyncio.sleep(0.5)
+
 
 def ensure_replay_task(game_id: str):
     t = REPLAY_TASKS.get(game_id)
